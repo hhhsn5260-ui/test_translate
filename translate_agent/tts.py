@@ -53,6 +53,8 @@ class OpenAITTS(BaseTTS):
             filename = output_dir / f"segment_{idx:04d}.{self.config.format}"
             self._synthesize_to_file(segment.translation, filename)
             segment.tts_path = filename
+            if idx == 1 or idx % 10 == 0:
+                logger.info("TTS progress (OpenAI): %s segments synthesized", idx)
 
     def _synthesize_to_file(self, text: str, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -94,6 +96,8 @@ class EdgeTTS(BaseTTS):
             filename = output_dir / f"segment_{idx:04d}.{self.config.format}"
             self._run_async(self._synthesize_to_file(segment.translation, filename))
             segment.tts_path = filename
+            if idx == 1 or idx % 10 == 0:
+                logger.info("TTS progress (Edge): %s segments synthesized", idx)
 
     async def _synthesize_to_file(self, text: str, output_path: Path) -> None:
         communicate = self.edge_tts.Communicate(

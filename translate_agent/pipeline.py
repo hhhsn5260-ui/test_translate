@@ -45,11 +45,17 @@ class VideoTranslationAgent:
         logger.info("Starting translation run '%s' for %s", run_name, video_path)
         run_dir.mkdir(parents=True, exist_ok=True)
 
+        logger.info("Step 1/4: Transcribing source audio...")
         segments = self._create_transcript(video_path)
+
+        logger.info("Step 2/4: Translating transcript segments...")
         self._translate_segments(segments)
+
+        logger.info("Step 3/4: Generating TTS audio segments...")
         self._synthesize_audio(segments, run_dir / "tts_segments")
 
         duration = get_video_duration(video_path)
+        logger.info("Step 4/4: Building dubbed track and muxing final video...")
         dubbed_audio_path = build_dub_track(
             segments=segments,
             duration_seconds=duration,

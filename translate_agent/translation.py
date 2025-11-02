@@ -50,8 +50,10 @@ class OpenAITranslator(BaseTranslator):
 
     def translate_segments(self, segments: Iterable[TranscriptSegment]) -> List[TranscriptSegment]:
         translated: List[TranscriptSegment] = []
-        for segment in segments:
+        for idx, segment in enumerate(segments, start=1):
             segment.translation = self._translate_text(segment.text)
+            if idx == 1 or idx % 10 == 0:
+                logger.info("Translation progress: %s segments processed", idx)
             translated.append(segment)
         return translated
 
@@ -83,17 +85,18 @@ class DeepSeekTranslator(BaseTranslator):
 
     def __init__(self, config: TranslationConfig):
         self.config = config
-        self.api_key = os.getenv(config.api_key_env or "DEEPSEEK_API_KEY")
+        env_key = config.api_key_env or "DEEPSEEK_API_KEY"
+        self.api_key = os.getenv(env_key)
         if not self.api_key:
-            raise RuntimeError(
-                f"DeepSeek API key not found. Please set environment variable '{config.api_key_env or 'DEEPSEEK_API_KEY'}'."
-            )
+            raise RuntimeError(f"DeepSeek API key not found. Please set environment variable '{env_key}'.")
         self.base_url = (config.api_base or "https://api.deepseek.com").rstrip("/")
 
     def translate_segments(self, segments: Iterable[TranscriptSegment]) -> List[TranscriptSegment]:
         translated: List[TranscriptSegment] = []
-        for segment in segments:
+        for idx, segment in enumerate(segments, start=1):
             segment.translation = self._translate_text(segment.text)
+            if idx == 1 or idx % 10 == 0:
+                logger.info("Translation progress (DeepSeek): %s segments processed", idx)
             translated.append(segment)
         return translated
 

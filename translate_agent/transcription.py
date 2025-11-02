@@ -37,7 +37,12 @@ class WhisperTranscriber:
             word_timestamps=False,
         )
         segments: Iterable[dict] = result.get("segments", [])
-        return [
+        collected = [
             TranscriptSegment(start=float(seg["start"]), end=float(seg["end"]), text=seg["text"].strip())
             for seg in segments
         ]
+        logger.info("Transcription complete: %s segments", len(collected))
+        if logger.isEnabledFor(logging.DEBUG):
+            for idx, seg in enumerate(collected, start=1):
+                logger.debug("Segment %03d: %.2f-%.2f %s", idx, seg.start, seg.end, seg.text)
+        return collected
