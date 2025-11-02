@@ -101,12 +101,13 @@ class EdgeTTS(BaseTTS):
                 logger.info("TTS progress (Edge): %s segments synthesized", idx)
 
     async def _synthesize_to_file(self, text: str, output_path: Path) -> None:
+        # 移除不兼容的output_format参数
         communicate = self.edge_tts.Communicate(
             text=text,
             voice=self.config.edge_voice,
             rate=self.config.edge_rate,
-            volume=self.config.edge_volume,
-            output_format=self.config.edge_output_format,
+            volume=self.config.edge_volume
+            # output_format参数已移除，因为它不被当前版本的edge-tts支持
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "wb") as outfile:
