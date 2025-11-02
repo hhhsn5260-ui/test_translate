@@ -26,9 +26,13 @@ class VideoTranslationAgent:
     def __init__(self, config: Optional[PipelineConfig] = None, client: Optional[OpenAI] = None):
         self.config = config or PipelineConfig()
         self.client = client or (OpenAI() if self._requires_openai_client() else None)
+        logger.info("Initializing Whisper transcriber...")
         self.transcriber = WhisperTranscriber(self.config.transcription)
+        logger.info("Initializing translator...")
         self.translator = build_translator(self.config.translation, client=self.client)
+        logger.info("Initializing TTS...")
         self.tts = build_tts(self.config.tts, client=self.client)
+        logger.info("Initialization complete")
 
     def run(self, video_path: Path, run_name: Optional[str] = None) -> PipelineArtifacts:
         video_path = video_path.resolve()
@@ -47,12 +51,15 @@ class VideoTranslationAgent:
 
         logger.info("Step 1/4: Transcribing source audio...")
         segments = self._create_transcript(video_path)
+        logger.info("Step 1/4 complete: %d segments transcribed", len(segments))
 
         logger.info("Step 2/4: Translating transcript segments...")
         self._translate_segments(segments)
+        logger.info("Step 2/4 complete")
 
         logger.info("Step 3/4: Generating TTS audio segments...")
         self._synthesize_audio(segments, run_dir / "tts_segments")
+        logger.info("Step 3/4 complete")
 
         duration = get_video_duration(video_path)
         logger.info("Step 4/4: Building dubbed track and muxing final video...")
@@ -86,7 +93,10 @@ class VideoTranslationAgent:
         return artifacts
 
     def _create_transcript(self, video_path: Path) -> list[TranscriptSegment]:
-        return self.transcriber.transcribe(video_path)
+        logger.debug("Creating transcript for %s", video_path)
+        result = self.transcriber.transcribe(video_path)
+        logger.debug("Transcript creation returned %d segments", len(result))
+        return result
 
     def _translate_segments(self, segments: list[TranscriptSegment]) -> None:
         logger.info("Translating %s transcript segments...", len(segments))
