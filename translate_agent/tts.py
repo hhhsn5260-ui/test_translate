@@ -94,6 +94,7 @@ class EdgeTTS(BaseTTS):
             if not segment.translation:
                 raise ValueError("Segment must include translation text before TTS synthesis.")
             filename = output_dir / f"segment_{idx:04d}.{self.config.format}"
+            # 在Jupyter/Colab环境中使用兼容的方式运行异步代码
             self._run_async(self._synthesize_to_file(segment.translation, filename))
             segment.tts_path = filename
             if idx == 1 or idx % 10 == 0:
@@ -115,11 +116,26 @@ class EdgeTTS(BaseTTS):
         logger.debug("Generated Edge TTS segment at %s", output_path)
 
     def _run_async(self, coroutine) -> None:
-        loop = asyncio.new_event_loop()
+        """在Jupyter/Colab环境中兼容性运行异步代码"""
         try:
-            loop.run_until_complete(coroutine)
-        finally:
-            loop.close()
+            # 尝试使用nest_asyncio解决Jupyter环境中的事件循环问题
+            import nest_asyncio
+            nest_asyncio.apply()
+            # 直接await协程
+            asyncio.run(coroutine)
+        except ImportError:
+            # 如果没有安装nest_asyncio，则使用传统方法
+            try:
+                # 尝试获取当前运行的事件循环
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(coroutine)
+            except RuntimeError:
+                # 如果没有运行中的事件循环，则创建新的
+                loop = asyncio.new_event_loop()
+                try:
+                    loop.run_until_complete(coroutine)
+                finally:
+                    loop.close()
 
 
 def build_tts(config: TTSConfig, client: Optional[OpenAI] = None) -> BaseTTS:
