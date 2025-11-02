@@ -7,9 +7,9 @@ from typing import Optional
 class TranscriptionConfig:
     """Configuration for Whisper transcription."""
 
-    model_size: str = "base"
+    model_size: str = "tiny"  # 更改默认模型为 tiny，提高CPU上的运行速度
     language: str = "en"
-    device: Optional[str] = None
+    device: Optional[str] = None  # 默认不指定设备，让系统自动选择
 
 
 @dataclass

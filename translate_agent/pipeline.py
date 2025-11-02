@@ -50,6 +50,7 @@ class VideoTranslationAgent:
         run_dir.mkdir(parents=True, exist_ok=True)
 
         logger.info("Step 1/4: Transcribing source audio...")
+        logger.info("Note: Transcription with Whisper can take several minutes, especially on CPU")
         segments = self._create_transcript(video_path)
         logger.info("Step 1/4 complete: %d segments transcribed", len(segments))
 

@@ -34,6 +34,7 @@ class WhisperTranscriber:
     def transcribe(self, media_path: Path) -> List[TranscriptSegment]:
         model = self._load_model()
         logger.info("Transcribing audio from %s", media_path)
+        logger.info("This may take a while depending on the audio length and model size...")
         try:
             result = model.transcribe(
                 str(media_path),
