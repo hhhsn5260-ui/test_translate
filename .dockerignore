@@ -1,0 +1,17 @@
+.git
+.gitignore
+__pycache__
+.mypy_cache
+.pytest_cache
+artifacts
+data
+.venv
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.log
+build
+dist
+*.egg-info
