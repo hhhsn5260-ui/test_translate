@@ -8,7 +8,12 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 from openai import OpenAI
-from openai.error import OpenAIError
+
+try:
+    from openai import APIError  # type: ignore
+except ImportError:  # Backwards compat for older SDKs
+    class APIError(Exception):
+        pass
 
 from .config import TTSConfig
 from .types import TranscriptSegment
@@ -63,7 +68,7 @@ class OpenAITTS(BaseTTS):
                     response.stream_to_file(output_path)
                 logger.debug("Generated TTS segment at %s", output_path)
                 return
-            except OpenAIError as exc:
+            except APIError as exc:
                 logger.warning("TTS attempt %s failed: %s", attempt, exc)
                 if attempt >= self.max_retries:
                     raise

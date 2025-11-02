@@ -7,7 +7,12 @@ from typing import Iterable, List, Optional
 
 import requests
 from openai import OpenAI
-from openai.error import OpenAIError
+
+try:
+    from openai import APIError  # type: ignore
+except ImportError:  # Backwards compat for older SDKs
+    class APIError(Exception):
+        pass
 
 from .config import TranslationConfig
 from .types import TranscriptSegment
@@ -65,7 +70,7 @@ class OpenAITranslator(BaseTranslator):
                 content = response.output[0].content[0].text.strip()
                 logger.debug("Translation result: %s -> %s", text, content)
                 return content
-            except OpenAIError as exc:
+            except APIError as exc:
                 logger.warning("Translation attempt %s failed: %s", attempt, exc)
                 if attempt >= self.config.max_retries:
                     raise
