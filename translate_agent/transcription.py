@@ -34,7 +34,26 @@ class WhisperTranscriber:
     def transcribe(self, media_path: Path) -> List[TranscriptSegment]:
         model = self._load_model()
         logger.info("Transcribing audio from %s", media_path)
+        
+        # 获取音频时长以估算处理时间
+        import subprocess
+        import json
+        try:
+            cmd = ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", str(media_path)]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            probe_data = json.loads(result.stdout)
+            duration = float(probe_data["format"]["duration"])
+            logger.info("Audio duration: %.1f minutes. Estimated processing time: %.1f-%.1f minutes (depending on model and hardware)", 
+                       duration/60, duration/60/10, duration/60/3)
+        except Exception as e:
+            logger.debug("Could not determine audio duration: %s", e)
+            
         logger.info("This may take a while depending on the audio length and model size...")
+        logger.info("For a 1-hour audio:")
+        logger.info("  Tiny model:  ~10-20 minutes")
+        logger.info("  Base model:  ~30-60 minutes") 
+        logger.info("  Small model: ~60-120 minutes")
+        logger.info("Processing... Please be patient.")
         try:
             result = model.transcribe(
                 str(media_path),

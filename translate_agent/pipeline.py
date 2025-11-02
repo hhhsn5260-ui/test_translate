@@ -50,7 +50,8 @@ class VideoTranslationAgent:
         run_dir.mkdir(parents=True, exist_ok=True)
 
         logger.info("Step 1/4: Transcribing source audio...")
-        logger.info("Note: Transcription with Whisper can take several minutes, especially on CPU")
+        logger.info("Note: Transcription with Whisper can take several minutes to hours for long videos")
+        logger.info("Progress will be displayed during processing")
         segments = self._create_transcript(video_path)
         logger.info("Step 1/4 complete: %d segments transcribed", len(segments))
 
@@ -101,11 +102,17 @@ class VideoTranslationAgent:
 
     def _translate_segments(self, segments: list[TranscriptSegment]) -> None:
         logger.info("Translating %s transcript segments...", len(segments))
+        total_segments = len(segments)
+        logger.info("Translation will process %d segments. This may take a while.", total_segments)
         self.translator.translate_segments(segments)
+        logger.info("Translation completed for all %d segments", total_segments)
 
     def _synthesize_audio(self, segments: list[TranscriptSegment], output_dir: Path) -> None:
         logger.info("Generating Chinese TTS audio for %s segments...", len(segments))
+        total_segments = len(segments)
+        logger.info("TTS will generate %d audio segments. This may take a while.", total_segments)
         self.tts.synthesize_segments(segments, output_dir=output_dir)
+        logger.info("TTS completed for all %d segments", total_segments)
 
     def _write_transcript_json(self, segments: list[TranscriptSegment], output_path: Path) -> Path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
